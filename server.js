@@ -81,11 +81,11 @@ ${conversationHistory ? `会話履歴:\n${conversationHistory}\n\n上記の会�
 
 3つの異なるメッセージパターンを番号付きで生成してください。`;
 
-    console.log('🤖 Calling GPT-4o-mini for message generation...');
+    console.log('🤖 Calling GPT-5 for message generation...');
 
-    // Call OpenAI GPT-4o-mini API
+    // Call OpenAI GPT-5 API
     const completion = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
+      model: 'gpt-5',
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: '3つの異なるメッセージパターンを番号付きで生成してください。' }
