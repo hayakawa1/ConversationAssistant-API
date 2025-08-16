@@ -1,6 +1,12 @@
 const express = require('express');
 const cors = require('cors');
+const { OpenAI } = require('openai');
 const app = express();
+
+// OpenAI setup
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY
+});
 
 app.use(cors({
   origin: '*',
@@ -15,18 +21,12 @@ app.get('/health', (req, res) => {
   res.json({ 
     status: 'ok', 
     timestamp: new Date().toISOString(),
-    service: 'ConversationAssistant API - Local Test',
+    service: 'ConversationAssistant API - GPT-4o-mini LLM',
     version: '1.0.0'
   });
 });
 
-// OpenAI API setup for real LLM integration
-const { OpenAI } = require('openai');
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
-});
-
-// GPT-4o-mini conversation generation endpoint with real LLM
+// GPT-4o-mini conversation generation endpoint
 app.post('/api/generate-message', async (req, res) => {
   try {
     console.log('📨 Generate message request:', req.body);
@@ -47,7 +47,7 @@ app.post('/api/generate-message', async (req, res) => {
     // Determine tone
     let tone = toneDialValue <= 0.5 ? 'casual' : 'polite';
     
-    // Build conversation history for context
+    // Build conversation history
     let conversationHistory = '';
     if (messages && messages.length > 0) {
       conversationHistory = messages.map(msg => 
@@ -55,7 +55,7 @@ app.post('/api/generate-message', async (req, res) => {
       ).join('\n');
     }
     
-    // Create system prompt for Japanese conversation using GPT-4o-mini
+    // Create system prompt for Japanese conversation
     const systemPrompt = `あなたは日本語の会話アシスタントです。以下の設定で自然な返信や話しかけを3つ生成してください。
 
 ユーザー情報:
@@ -81,7 +81,7 @@ ${conversationHistory ? `会話履歴:\n${conversationHistory}\n\n上記の会�
 
 3つの異なるメッセージパターンを番号付きで生成してください。`;
 
-    console.log('🤖 Calling GPT-4o-mini for message generation...');
+    console.log('🤖 Calling GPT-4o-mini...');
 
     // Call OpenAI GPT-4o-mini API
     const completion = await openai.chat.completions.create({
@@ -91,9 +91,9 @@ ${conversationHistory ? `会話履歴:\n${conversationHistory}\n\n上記の会�
         { role: 'user', content: '3つの異なるメッセージパターンを番号付きで生成してください。' }
       ],
       max_tokens: 500,
-      temperature: 0.8, // Higher temperature for more creativity
-      presence_penalty: 0.6, // Encourage diverse content
-      frequency_penalty: 0.3 // Reduce repetition
+      temperature: 0.8,
+      presence_penalty: 0.6,
+      frequency_penalty: 0.3
     });
 
     const responseText = completion.choices[0]?.message?.content || '';
@@ -109,7 +109,7 @@ ${conversationHistory ? `会話履歴:\n${conversationHistory}\n\n上記の会�
         tone: tone
       }));
 
-    // Fallback if parsing fails - ensure we have 3 suggestions
+    // Fallback if parsing fails
     if (suggestions.length < 3) {
       const fallbackMessages = tone === 'casual' ? [
         `こんにちは、${partnerName}さん！${userAge}歳の${firstPerson}です😊`,
@@ -150,7 +150,7 @@ ${conversationHistory ? `会話履歴:\n${conversationHistory}\n\n上記の会�
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`🚀 Local Test Server running on port ${PORT}`);
+  console.log(`🚀 GPT-4o-mini LLM Server running on port ${PORT}`);
   console.log(`📍 Health check: http://localhost:${PORT}/health`);
   console.log(`🤖 Generate endpoint: http://localhost:${PORT}/api/generate-message`);
 });
